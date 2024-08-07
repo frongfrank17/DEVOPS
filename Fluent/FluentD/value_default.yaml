@@ -4,7 +4,7 @@ fullnameOverride: ""
 # DaemonSet, Deployment or StatefulSet
 kind: "DaemonSet"
 # azureblob, cloudwatch, elasticsearch7, elasticsearch8, gcs, graylog , kafka, kafka2, kinesis, opensearch
-variant: opensearch
+variant: elasticsearch7
 # # Only applicable for Deployment or StatefulSet
 # replicaCount: 1
 
@@ -50,10 +50,10 @@ securityContext: {}
 
 # Configure the livecycle
 # Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
-lifecycle: []
-#   preStop:
-#     exec:
-#       command: ['gem search -rd fluent-plugin']
+lifecycle: {}
+  # preStop:
+  #   exec:
+  #     command: ["/bin/sh", "-c", "sleep 20"]
 
 # Configure the livenessProbe
 # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -162,17 +162,13 @@ updateStrategy: {}
 #     maxUnavailable: 1
 
 ## Additional environment variables to set for fluentd pods
-env: 
+env: []
   # - name: "FLUENTD_CONF"
   #   value: "../../../etc/fluent/fluent.conf"
   # - name: FLUENT_ELASTICSEARCH_HOST
   #   value: "elasticsearch-master"
   # - name: FLUENT_ELASTICSEARCH_PORT
   #   value: "9200"
-    - name: K8S_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
 
 envFrom: []
 
@@ -205,16 +201,14 @@ persistence:
 ##
 service:
   enabled: true
-  type: "NodePort"
+  type: "ClusterIP"
   annotations: {}
   # loadBalancerIP:
   # externalTrafficPolicy: Local
-  ports: 
-   - name: "forwarder"
-     protocol: TCP
-     containerPort: 24224
-     nodePort: 30224
-
+  ports: []
+  # - name: "forwarder"
+  #   protocol: TCP
+  #   containerPort: 24224
 
 ## Prometheus Monitoring
 ##
@@ -382,15 +376,15 @@ fileConfigs:
 
   04_outputs.conf: |-
     <label @OUTPUT>
-      <match kubernetes.**>
-        @type opensearch
-        host kubernetes.docker.internal
-        port 30009
-        user admin
-        password 1n1314LP422w0rDD3v0PS#
-        scheme https     
+      <match **>
+        @type elasticsearch
+        host "elasticsearch-master"
+        port 9200
+        path ""
+        user elastic
+        password changeme
         # Don't wait for elastic to start up.
-        ssl_verify false 
+        verify_es_version_at_startup false
       </match>
     </label>
 

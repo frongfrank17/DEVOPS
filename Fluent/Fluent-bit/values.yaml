@@ -365,12 +365,17 @@ luaScripts: {}
 
 ## https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file
 config:
+  parsers: |
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S
   service: |
     [SERVICE]
         Daemon Off
         Flush {{ .Values.flush }}
         Log_Level {{ .Values.logLevel }}
-        Parsers_File /fluent-bit/etc/parsers.conf
         Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
         HTTP_Server On
         HTTP_Listen 0.0.0.0
@@ -405,20 +410,23 @@ config:
 
   ## https://docs.fluentbit.io/manual/pipeline/outputs
   outputs: |
-    [OUTPUT]
-        Name es
-        Match kube.*
-        Host elasticsearch-master
-        Logstash_Format On
-        Retry_Limit False
+     [OUTPUT]
+         Name              forward
+         Match             *
+         Host              ubernetes.docker.internal
+         Port              32558
+    # [OUTPUT]
+    #     Name opensearch
+    #     Match kube.*
+    #     Host kubernetes.docker.internal
+    #     Port          30009
+    #     Index         fluentbit
+    #     HTTP_User     admin
+    #     HTTP_Passwd   1n1314LP422w0rDD3v0PS#
+    #     tls           On
+    #     tls.verify    Off  
 
-    [OUTPUT]
-        Name es
-        Match host.*
-        Host elasticsearch-master
-        Logstash_Format On
-        Logstash_Prefix node
-        Retry_Limit False
+
 
   ## https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/upstream-servers
   ## This configuration is deprecated, please use `extraFiles` instead.
@@ -427,7 +435,7 @@ config:
   ## https://docs.fluentbit.io/manual/pipeline/parsers
   customParsers: |
     [PARSER]
-        Name docker_no_time
+        Name json
         Format json
         Time_Keep Off
         Time_Key time
