@@ -116,15 +116,20 @@ extraDeploy: []
 
 # -- Additional `volume`, See [Kubernetes Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) for the detail.
 extraVolumes: 
-  - name: serverless-script-volume
+  - name: apisix-custom-plugins
     configMap:
-      name: apisix-serverless-script
+      name: apisix-custom-plugins
+  # - name: serverless-script-volume
+  #   configMap:
+  #     name: apisix-serverless-script
 
 # -- Additional `volume`, See [Kubernetes Volumes](https://kubernetes.io/docs/concepts/storage/volumes/) for the detail.
-extraVolumeMounts: 
-  - name: serverless-script-volume
-    mountPath: /usr/local/apisix/apisix/scripts/custome-plugin.lua
-    subPath: custome-plugin.lua
+extraVolumeMounts:
+  - name: apisix-custom-plugins
+    mountPath: /usr/local/apisix/custom_plugins/
+  # - name: serverless-script-volume
+  #   mountPath: /usr/local/apisix/apisix/scripts/custome-plugin.lua
+  #   subPath: custome-plugin.lua
 
 # -- Additional `initContainers`, See [Kubernetes initContainers](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) for the detail.
 extraInitContainers: []
@@ -489,7 +494,8 @@ apisix:
     containerPort: 9091
 
   # -- Customize the list of APISIX plugins to enable. By default, APISIX's default plugins are automatically used. See [config-default.yaml](https://github.com/apache/apisix/blob/master/conf/config-default.yaml)
-  plugins: []
+  plugins: 
+    - my_plugin
   # -- Customize the list of APISIX stream_plugins to enable. By default, APISIX's default stream_plugins are automatically used. See [config-default.yaml](https://github.com/apache/apisix/blob/master/conf/config-default.yaml)
   stream_plugins: []
 

@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apisix-custom-plugins
+  namespace: logging
+data:
+  my_plugin.lua: |
+    local core = require("apisix.core")
+
+    local plugin_name = "my_plugin"
+
+    local schema = {
+        type = "object",
+        properties = {
+            message = { type = "string" },
+        },
+        required = { "message" },
+    }
+
+    local _M = {
+        version = 0.1,
+        priority = 0,
+        name = plugin_name,
+        schema = schema,
+    }
+
+    function _M.check_schema(conf)
+        return core.schema.check(schema, conf)
+    end
+
+    function _M.rewrite(conf, ctx)
+        core.log.info("Executing rewrite phase of ", plugin_name)
+        core.request.set_header(ctx, "X-My-Header", conf.message)
+    end
+
+    function _M.access(conf, ctx)
+        core.log.info("Executing access phase of ", plugin_name)
+    end
+
+    function _M.header_filter(conf, ctx)
+        core.log.info("Executing header_filter phase of ", plugin_name)
+        core.response.set_header("X-My-Response-Header", "Hello from my_plugin")
+    end
+
+    function _M.body_filter(conf, ctx)
+        core.log.info("Executing body_filter phase of ", plugin_name)
+    end
+
+    function _M.log(conf, ctx)
+        core.log.info("Executing log phase of ", plugin_name)
+    end
+
+    return _M
